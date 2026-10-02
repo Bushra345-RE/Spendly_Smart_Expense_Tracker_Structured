@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Spendly — Transactions{% endblock %}
+{% block content %}
+<section class="page-heading"><div><p class="eyebrow">YOUR MONEY TRAIL</p><h1>Transactions</h1><p>Every expense, neatly in one place.</p></div><button class="primary-btn" onclick="openModal()">＋ Add expense</button></section>
+
+<form class="filters">
+  <input name="q" value="{{ q }}" placeholder="Search expenses…">
+  <select name="category"><option value="">All categories</option>{% for c in categories %}<option value="{{ c }}" {% if category == c %}selected{% endif %}>{{ c }}</option>{% endfor %}</select>
+  <input type="month" name="month" value="{{ month }}">
+  <button class="filter-btn">Filter</button>
+  <a class="clear-btn" href="{{ url_for('expenses') }}">Clear</a>
+</form>
+
+<article class="panel table-panel">
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>Expense</th><th>Category</th><th>Date</th><th>Amount</th><th></th></tr></thead>
+    <tbody>
+    {% for expense in expenses %}
+    <tr>
+      <td><strong>{{ expense.title }}</strong>{% if expense.notes %}<small>{{ expense.notes }}</small>{% endif %}</td>
+      <td><span class="tag">{{ expense.category }}</span></td>
+      <td>{{ expense.spent_on.strftime('%d %b %Y') }}</td>
+      <td class="amount">−{{ expense.amount|currency }}</td>
+      <td>
+        <form method="post" action="{{ url_for('delete_expense', expense_id=expense.id) }}" onsubmit="return confirm('Delete this expense?')">
+          <button class="delete-btn" title="Delete">⌫</button>
+        </form>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" class="empty">No matching expenses found.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</article>
+
+<div class="modal-backdrop" id="expenseModal">
+  <div class="modal">
+    <button class="close" onclick="closeModal()">×</button>
+    <p class="eyebrow">NEW TRANSACTION</p><h2>Add an expense</h2>
+    <form method="post" action="{{ url_for('add_expense') }}">
+      <label>What did you spend on?<input name="title" placeholder="e.g. Coffee with friends" required maxlength="120"></label>
+      <div class="form-grid"><label>Amount<input name="amount" type="number" min="0.01" step="0.01" placeholder="₹ 0.00" required></label><label>Date<input name="spent_on" type="date" value="{{ today }}" required></label></div>
+      <label>Category<select name="category">{% for c in categories %}<option>{{ c }}</option>{% endfor %}</select></label>
+      <label>Notes <span class="muted">(optional)</span><textarea name="notes" rows="3"></textarea></label>
+      <button class="primary-btn full">Save expense</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
